@@ -6,29 +6,23 @@ import { GlobalContext } from '../../context/GlobalState'
 import Axios from 'axios'
 
 function AddTransaction() {
+    const fetchData = async () => {
+        await Axios.get('http://localhost:3001/api/get').then(response => {
+            for (let i = 0; i < response.data.length; ++i) {                
+                response.data[i].date = new Date(Date.parse(response.data[i].date))
+                addTransaction(response.data[i])
+            }
+        })
+    }
+    useEffect(() => {
+        fetchData()
+    }, [])
+
     const { addTransaction } = useContext(GlobalContext)
     const [text, setText] = useState("")
     const [amount, setAmount] = useState(0)
     const [date, setDate] = useState(new Date())
     const [type, setType] = useState("Food")
-
-    const fetchData = () => {
-        async function getData(URL) {
-            Axios.get(URL).then(response => {
-                for (let i = 0; i < response.data.length; ++i) {                
-                    response.data[i].date = new Date(Date.parse(response.data[i].date))
-                    addTransaction(response.data[i])
-                }
-            })
-        }
-
-        getData('http://localhost:3001/api/get/expenses')
-        getData('http://localhost:3001/api/get/incomes')
-    }
-
-    useEffect(() => {
-        fetchData()
-    }, [])
 
     const handleSubmit = (e) => {
         e.preventDefault()
@@ -41,11 +35,11 @@ function AddTransaction() {
             type: transactionType
         }
 
+        //send data to display components and back-end
+        Axios.post('http://localhost:3001/api/insert', newTransaction).then(() => {
+            alert("successful insert")
+        })
         addTransaction(newTransaction)
-        // send data to display components and back-end
-        // Axios.post('http://localhost:3001/api/insert', newTransaction).then(() => {
-        //     alert("successful insert")
-        // })
     }
     return (
         <div>

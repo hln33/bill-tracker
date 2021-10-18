@@ -13,19 +13,11 @@ const db = mysql.createConnection({
     database: 'CRUDDataBase'
 })
 
-// get expenses from database
-app.get('/api/get/expenses', (req, res) => {
-    const sqlSelect = "SELECT * FROM expenses"
- 
-    db.query(sqlSelect, (err, result) => {
-        res.send(result)
-    })
-})
-// get incomes from database
-app.get('/api/get/incomes', (req, res) => {
-    const sqlSelect = "SELECT * FROM incomes"
+app.get('/api/get', (req, res) => {
+    const sqlSelect = "SELECT * FROM transactions"
 
     db.query(sqlSelect, (err, result) => {
+        if (err) console.log(err)
         res.send(result)
     })
 })
@@ -33,27 +25,29 @@ app.get('/api/get/incomes', (req, res) => {
 // insert new entry into database
 app.post('/api/insert', (req, res) => {
     const transaction = req.body
+    const id = transaction.id
     const amount = transaction.amount
     const type = transaction.type
     const text = transaction.text
     const date = transaction.date
-
     console.log(transaction)
 
-    const sqlInsert = amount < 0 ? 
-        "INSERT INTO expenses (amount, type, text, date) VALUES (?,?,?,?)" :
-        "INSERT INTO incomes (amount, text, date) VALUES (?,?,?)"
+    const sqlInsert = "INSERT INTO transactions (id, amount, type, text, date) VALUES (?,?,?,?,?)"
+    db.query(sqlInsert, [id, amount, type, text, date], (err, result) => {
+        if (err) console.log(err)
+        console.log(result)
+    })
+})
 
-    if (type) {
-        db.query(sqlInsert, [amount, type, text, date], (err, result) => {
-            console.log(result)
-        })
-    }
-    else {
-        db.query(sqlInsert, [amount, text, date], (err, result) => {
-            console.log(result)
-        })
-    }
+// delete entry in database
+app.delete('/api/delete/:id', (req, res) => {
+    const id = req.params.id
+    const sqlDelete = "DELETE FROM transactions WHERE id = ?"
+
+    db.query(sqlDelete, id, (err, result) => {
+        if (err) console.log(err)
+        console.log(result)
+    })
 })
 
 app.listen(3001, () => {
